@@ -9,10 +9,12 @@ public class RawClassifier {
 	private String filename = null;
 	private String classifier_path = "./classifier_data/haarcascade_frontalface_default.xml";
 	public RawClassifier(String in_file){
-		filename = filename;
+		filename = in_file;
 		System.loadLibrary( Core.NATIVE_LIBRARY_NAME );
 		my_image = Imgcodecs.imread(filename);
 	}
+	
+	//This function is responsible for detecting the rough range of the face.
 	public Rect face_rect(){
 		if(my_image == null){
 			System.out.println("not initialized");
@@ -31,49 +33,44 @@ public class RawClassifier {
 	    	if(final_face == null || final_face.width < rect.width)
 	    		final_face = rect;
 	    }
+	    Mat image = my_image.clone();
+	    Imgproc.rectangle(image, new Point(final_face.x, final_face.y), 
+	    		new Point(final_face.x + final_face.width, final_face.y + final_face.height),
+	    		new Scalar(0, 255, 0));
+	    String filename = "faceDetection_rect.png";
+	    System.out.println(String.format("Writing %s", filename));
+	    Imgcodecs.imwrite(filename, image);
 		return final_face;
 	}
 	//TODO: change the return type of this function
-	public void 
-	public void face_range() {
-	    System.out.println("\nRunning DetectFaceDemo");
-	    // Create a face detector from the cascade file in the resources
-	    // directory.
-	    CascadeClassifier faceDetector = new CascadeClassifier("./classifier_data/haarcascade_frontalface_default.xml");
-	    Mat image = Imgcodecs.imread("./test.jpg");
-	    // Detect faces in the image.
-	    // MatOfRect is a special container class for Rect.
-	    MatOfRect faceDetections = new MatOfRect();
-	    faceDetector.detectMultiScale(image, faceDetections);
-	    System.out.println(String.format("Detected %s faces", faceDetections.toArray().length));
-	    //==================creating the mat for the grabCut=========================
-	    Rect final_face = null;
-	    for (Rect rect: faceDetections.toArray()){
-	    	if(final_face == null || final_face.width < rect.width)
-	    		final_face = rect;
-	    }
-	    Mat mask = Mat.ones(image.rows(), image.cols(), CvType.CV_8U).clone();
-//	    byte data[] = {2};
-//	    mask.get(0, 0, data);
-//	    System.out.println("value"+data[0]);
-//    	mask.dump();
-//    	System.out.println("here");
-    	Mat tmp_mask_frt = Mat.zeros(final_face.height, final_face.width, CvType.CV_8U).clone();
-    	Mat mask_sub_ptr = mask.colRange(final_face.x, final_face.x+final_face.width).
-    							rowRange(final_face.y, final_face.y+final_face.height);
-    	tmp_mask_frt.copyTo(mask_sub_ptr);
-    	Mat result = new Mat();
+	public void face_contour_byrect(){
+		//first create helper vars and get the mask
+		Rect face_rawrange = face_rect();
+		//creating the mask which are all background first. Then using the rect to define the foreground.
+		Mat mask = new Mat();
+    	new Mat();
     	Mat bgdModel = new Mat();
     	Mat fgdModel = new Mat();
-    	Mat source = new Mat(image.height(), image.width(), CvType.CV_8U, new Scalar(3));
-    	Imgproc.grabCut(image, result, final_face, bgdModel, fgdModel, 8, Imgproc.GC_INIT_WITH_RECT);
+    	//create matrix full of 3, which indicate the foreground.
+    	Mat source = new Mat(my_image.height(), my_image.width(), CvType.CV_8U, new Scalar(3));
+    	Imgproc.grabCut(my_image, mask, face_rawrange, bgdModel, fgdModel, 8, Imgproc.GC_INIT_WITH_RECT);
 
-    	Core.compare(result, source, result, Core.CMP_EQ);
-        Mat foreground = new Mat(image.size(), CvType.CV_8UC3, new Scalar(255, 255, 255));
-        image.copyTo(foreground, result);
+    	Core.compare(mask, source, mask, Core.CMP_EQ);
+        Mat foreground = new Mat(my_image.size(), CvType.CV_8UC3, new Scalar(255, 255, 255));
+        my_image.copyTo(foreground, mask);
     	
-	    String filename = "faceDetection.png";
+	    String filename = "faceDetection_contour.png";
 	    System.out.println(String.format("Writing %s", filename));
 	    Imgcodecs.imwrite(filename, foreground);
-	  }
+	}
+	//TODO: if we can get some input.....
+	public void face_contour_bymask(){
+		//creating the mask which are all background first. Then using the rect to define the foreground.
+		Rect face_rawrange = face_rect();
+		Mat mask = Mat.ones(my_image.rows(), my_image.cols(), CvType.CV_8U).clone();
+    	Mat tmp_mask_frt = Mat.zeros(face_rawrange.height, face_rawrange.width, CvType.CV_8U).clone();
+    	Mat mask_sub_ptr = mask.colRange(face_rawrange.x, face_rawrange.x+face_rawrange.width).
+    							rowRange(face_rawrange.y, face_rawrange.y+face_rawrange.height);
+    	tmp_mask_frt.copyTo(mask_sub_ptr);
+	}
 }

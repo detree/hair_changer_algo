@@ -1,8 +1,6 @@
 package face_detect_test;
 
 import org.opencv.core.Core;
-import org.opencv.core.CvType;
-import org.opencv.core.Mat;
 
 public class Test {
 
@@ -10,7 +8,9 @@ public class Test {
 		System.loadLibrary( Core.NATIVE_LIBRARY_NAME );
 	    //Mat mat = Mat.eye( 3, 3, CvType.CV_8UC1 );
 	    //System.out.println( "mat = " + mat.dump() );
-	    new RawClassifier().face_range();
+		RawClassifier test = new RawClassifier("test.jpg");
+		test.face_rect();
+	    //test.face_contour_byrect();
 	}
 
 }
