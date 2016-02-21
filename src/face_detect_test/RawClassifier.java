@@ -9,11 +9,13 @@ public class RawClassifier {
 	private Mat my_image = null;
 	private String filename = null;
 	private Rect my_facerect = null;
+	private ColorRecg_YCrCb face_color_whithin = null;
 	private String classifier_path = "./classifier_data/haarcascade_frontalface_default.xml";
 	public RawClassifier(String in_file){
 		filename = in_file;
 		System.loadLibrary( Core.NATIVE_LIBRARY_NAME );
 		my_image = Imgcodecs.imread(filename);
+		my_facerect = null;
 	}
 	
 	//This function is responsible for detecting the rough range of the face.
@@ -41,7 +43,12 @@ public class RawClassifier {
 		    		new Point(rect.x + rect.width, rect.y + rect.height),
 		    		new Scalar(0, 255, 0));
 	    }
-	    
+	    System.out.println();
+	    System.out.println(final_face.x + " " + (final_face.x+final_face.width) + " " + final_face.y + " " + (final_face.y+final_face.height));
+	    face_color_whithin = new ColorRecg_YCrCb(
+	    		my_image.submat(final_face.y, final_face.y+final_face.height,
+	    				final_face.x, final_face.x+final_face.width).clone()
+	    		);
 	    String filename = "faceDetection_rect.png";
 	    System.out.println(String.format("Writing %s", filename));
 	    Imgcodecs.imwrite(filename, image);
@@ -76,6 +83,38 @@ public class RawClassifier {
 	    String filename = "faceDetection_contour.png";
 	    System.out.println(String.format("Writing %s", filename));
 	    Imgcodecs.imwrite(filename, foreground);
+	}
+	
+	public void face_contour_bymask_new(){
+		face_rect();
+		//creating the final mask for output.
+		Mat mask = new Mat(my_image.rows(), my_image.cols(), CvType.CV_8U);
+		mask.setTo(new Scalar(Imgproc.GC_PR_BGD));
+		//this is the mask specifically for the face area.
+		Mat mask_in = face_color_whithin.get_skin_mask();
+		Mat tmp_mask_frt = new Mat(my_facerect.height, my_facerect.width, CvType.CV_8U);
+    	tmp_mask_frt.setTo(new Scalar(Imgproc.GC_PR_BGD));
+    	//System.out.println(my_facerect.width);
+    	//System.out.println(mask_in);
+    	tmp_mask_frt.setTo(new Scalar(Imgproc.GC_FGD), mask_in);
+    	Mat mask_sub_ptr = mask.colRange(my_facerect.x, my_facerect.x+my_facerect.width).
+				rowRange(my_facerect.y, my_facerect.y+my_facerect.height);
+    	tmp_mask_frt.copyTo(mask_sub_ptr);
+
+		Mat bgdModel = new Mat();
+		Mat fgdModel = new Mat();
+		//create matrix full of 3, which indicate the foreground.
+		Imgproc.grabCut(my_image, mask, my_facerect, bgdModel, fgdModel, 8, Imgproc.GC_INIT_WITH_MASK);
+		Mat source = new Mat(my_image.height(), my_image.width(), CvType.CV_8U, new Scalar(Imgproc.GC_PR_FGD));
+		mask_sub_ptr.setTo(new Scalar(Imgproc.GC_PR_FGD), mask_in);
+		
+		Core.compare(mask, source, mask, Core.CMP_EQ);
+		Mat foreground = new Mat(my_image.size(), CvType.CV_8UC3, new Scalar(255, 255, 255));
+		my_image.copyTo(foreground, mask);
+		
+		String filename = "faceDetection_contour2.png";
+		System.out.println(String.format("Writing %s", filename));
+		Imgcodecs.imwrite(filename, foreground);
 	}
 	
 	//TODO: if we can get some input.....

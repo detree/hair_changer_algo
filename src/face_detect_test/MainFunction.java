@@ -11,6 +11,19 @@ public class MainFunction {
 
 	public static void main(String[] args) {
 		System.loadLibrary( Core.NATIVE_LIBRARY_NAME );
+		color_test();
+		
+	}
+	private static void color_test(){
+		String test_file = "test2.jpg";
+		//ColorRecg_YCrCb clr_recg = new ColorRecg_YCrCb(test_file);
+		//clr_recg.get_skin_mask();
+		RawClassifier clsfr1 = new RawClassifier(test_file);
+		clsfr1.face_rect();
+		clsfr1.face_contour_bymask_new();
+	}
+	private static void old_test(){
+		
 	    Mat mat = Mat.eye( 3, 3, CvType.CV_8UC1 );
 	    System.out.println( "mat = " + mat.dump() );
 	   //new RawClassifier().face_range();
@@ -35,5 +48,4 @@ public class MainFunction {
 		System.out.println("finished");
 		//System.out.println(Imgproc.GC_BGD);
 	}
-
 }
