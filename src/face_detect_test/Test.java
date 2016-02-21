@@ -10,7 +10,7 @@ public class Test {
 	    //System.out.println( "mat = " + mat.dump() );
 		RawClassifier test = new RawClassifier("test.jpg");
 		test.face_rect();
-	    //test.face_contour_byrect();
+	    test.face_contour_byrect();
 	}
 
 }

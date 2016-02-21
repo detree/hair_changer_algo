@@ -46,6 +46,7 @@ public class RawClassifier {
 	public void face_contour_byrect(){
 		//first create helper vars and get the mask
 		Rect face_rawrange = face_rect();
+		face_rawrange.height*=1.1;
 		//creating the mask which are all background first. Then using the rect to define the foreground.
 		Mat mask = new Mat();
     	new Mat();
