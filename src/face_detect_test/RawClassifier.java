@@ -7,6 +7,7 @@ import org.opencv.objdetect.CascadeClassifier;
 public class RawClassifier {
 	private Mat my_image = null;
 	private String filename = null;
+	private Rect my_facerect = null;
 	private String classifier_path = "./classifier_data/haarcascade_frontalface_default.xml";
 	public RawClassifier(String in_file){
 		filename = in_file;
@@ -20,6 +21,8 @@ public class RawClassifier {
 			System.out.println("not initialized");
 			return null;
 		}
+		if(my_facerect != null)
+			return my_facerect;
 		//start the detecting
 		System.out.println("\nRunning DetectFaceDemo");
 		CascadeClassifier face_rect_dtect = new CascadeClassifier(classifier_path);
@@ -40,6 +43,7 @@ public class RawClassifier {
 	    String filename = "faceDetection_rect.png";
 	    System.out.println(String.format("Writing %s", filename));
 	    Imgcodecs.imwrite(filename, image);
+	    my_facerect = final_face;
 		return final_face;
 	}
 	
@@ -80,12 +84,10 @@ public class RawClassifier {
 		mask.setTo(new Scalar(Imgproc.GC_PR_BGD));
     	Mat tmp_mask_frt = new Mat(face_rawrange.height, face_rawrange.width, CvType.CV_8U);
     	tmp_mask_frt.setTo(new Scalar(Imgproc.GC_PR_BGD));
-    	System.out.println(matrix.length);
-    	System.out.println(face_rect().height);
     	for(int i=0; i<matrix.length; i++){
     		for(int j=0; j<matrix[0].length; j++){
     			tmp_mask_frt.put(i, j, matrix[i][j]);
-    			System.out.print(matrix[i][j]);
+    			//System.out.print(matrix[i][j]);
     		}
     		//System.out.println();
     	}
@@ -93,12 +95,19 @@ public class RawClassifier {
     	Mat mask_sub_ptr = mask.colRange(face_rawrange.x, face_rawrange.x+face_rawrange.width).
     							rowRange(face_rawrange.y, face_rawrange.y+face_rawrange.height);
     	tmp_mask_frt.copyTo(mask_sub_ptr);
+    	
     	Mat bgdModel = new Mat();
     	Mat fgdModel = new Mat();
+    	double[] old_val = {Imgproc.GC_FGD};
+		double new_val = Imgproc.GC_PR_FGD;
     	//create matrix full of 3, which indicate the foreground.
     	Imgproc.grabCut(my_image, mask, face_rawrange, bgdModel, fgdModel, 8, Imgproc.GC_INIT_WITH_MASK);
     	Mat source = new Mat(my_image.height(), my_image.width(), CvType.CV_8U, new Scalar(Imgproc.GC_PR_FGD));
-    	mask.setTo(new Scalar(Imgproc.GC_PR_FGD), tmp_mask_frt);
+    	for(int i=face_rawrange.x; i<face_rawrange.x+face_rawrange.width; i++)
+    		for(int j=face_rawrange.y; j<face_rawrange.y + face_rawrange.height; j++)
+    			if(mask.get(j, i)[0] == old_val[0])
+    				mask.put(j, i, new_val);
+    	
   
     	Core.compare(mask, source, mask, Core.CMP_EQ);
         Mat foreground = new Mat(my_image.size(), CvType.CV_8UC3, new Scalar(255, 255, 255));
