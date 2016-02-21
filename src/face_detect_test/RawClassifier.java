@@ -1,5 +1,6 @@
 package face_detect_test;
 import org.opencv.core.*;
+import org.opencv.core.Core;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.CascadeClassifier;
@@ -87,15 +88,15 @@ public class RawClassifier {
     	for(int i=0; i<matrix.length; i++){
     		for(int j=0; j<matrix[0].length; j++){
     			tmp_mask_frt.put(i, j, matrix[i][j]);
-    			//System.out.print(matrix[i][j]);
     		}
-    		//System.out.println();
     	}
-
     	Mat mask_sub_ptr = mask.colRange(face_rawrange.x, face_rawrange.x+face_rawrange.width).
     							rowRange(face_rawrange.y, face_rawrange.y+face_rawrange.height);
     	tmp_mask_frt.copyTo(mask_sub_ptr);
-    	
+		
+		/*Imgproc.ellipse(mask, new Point(face_rawrange.x+face_rawrange.width/2, face_rawrange.y+face_rawrange.height/2),
+				new Size(face_rawrange.y, face_rawrange.y/1.3), 43.0, 0.0, 360.0, new Scalar(Imgproc.GC_PR_FGD), -1);*/
+		
     	Mat bgdModel = new Mat();
     	Mat fgdModel = new Mat();
     	double[] old_val = {Imgproc.GC_FGD};
