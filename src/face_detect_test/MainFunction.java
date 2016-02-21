@@ -14,7 +14,7 @@ public class MainFunction {
 	    Mat mat = Mat.eye( 3, 3, CvType.CV_8UC1 );
 	    System.out.println( "mat = " + mat.dump() );
 	   //new RawClassifier().face_range();
-	    String addr = "test7.jpg";
+	    String addr = "test11.jpg";
 	    RawClassifier faceDetect = new RawClassifier(addr);
 	    int[] dataOfRec;
 	    dataOfRec = faceDetect.getloc();   // 1st

@@ -33,14 +33,15 @@ public class RawClassifier {
 		//we have a matrix of rects representing the position of faces
 		//choose the most obvious one
 		Rect final_face = null;
+		Mat image = my_image.clone();
 	    for (Rect rect: face_rect_out.toArray()){
 	    	if(final_face == null || final_face.width < rect.width)
 	    		final_face = rect;
+	    	Imgproc.rectangle(image, new Point(rect.x, rect.y), 
+		    		new Point(rect.x + rect.width, rect.y + rect.height),
+		    		new Scalar(0, 255, 0));
 	    }
-	    Mat image = my_image.clone();
-	    Imgproc.rectangle(image, new Point(final_face.x, final_face.y), 
-	    		new Point(final_face.x + final_face.width, final_face.y + final_face.height),
-	    		new Scalar(0, 255, 0));
+	    
 	    String filename = "faceDetection_rect.png";
 	    System.out.println(String.format("Writing %s", filename));
 	    Imgcodecs.imwrite(filename, image);
